@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 const app = express();
 
@@ -27,50 +27,53 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-// Connect to the "usersDB" database and access its "userCollection" collection
-const database = client.db("usersDB");
-const userCollection = database.collection("users");
-// or we can write this in a single line :-
-// const userCollection = client.db("usersDB").collection("users");
+    // Connect to the "usersDB" database and access its "userCollection" collection
+    const database = client.db("usersDB");
+    const userCollection = database.collection("users");
+    // or we can write this in a single line :-
+    // const userCollection = client.db("usersDB").collection("users");
 
-//for get(Read) data from MongoDB
-app.get('/users', async(req,res)=>{
-  const cursor = userCollection.find()
-  const result= await cursor.toArray();
-  res.send(result);
-})
+    //for get(Read) data from MongoDB
+    app.get('/users', async (req, res) => {
+      const cursor = userCollection.find()
+      const result = await cursor.toArray();
+      res.send(result);
+    })
 
-//for post(Create) into MongoDB
-app.post('/users', async(req,res)=>{
-const user =req.body;
-console.log('new user', user);
+    //for post(Create) into MongoDB
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      console.log('new user', user);
+      // Insert the defined document into the "userCollection" collection
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
 
-// for Delete from MongoDB
-app.delete('/users/:id',(req,res)=>{
-  const id = req.params.id;
-  console.log('please delete from DB',id);
-})
-//option 2
-// app.delete('/users/:id', async (req, res) => {
-//   const id = req.params.id;
-//   console.log('please delete from DB', id);
+       // for Delete from MongoDB
+      app.delete('/users/:id', async (req, res) => {
+        const id = req.params.id;
+        console.log('please delete from DB', id);
+        const query = { _id: new ObjectId (id) }
+        const result = await userCollection.deleteOne(query);
+        res.send(result);
+      })
 
-//   const query = { _id: new ObjectId(id) };
-//   const result = await userCollection.deleteOne(query);
+      //option 2
+      // app.delete('/users/:id', async (req, res) => {
+      //   const id = req.params.id;
+      //   console.log('please delete from DB', id);
 
-//   if (result.deletedCount > 0) {
-//     res.send({ success: true, message: 'User deleted', result });
-//   } else {
-//     res.status(404).send({ success: false, message: 'User not found' });
-//   }
-// });
+      //   const query = { _id: new ObjectId(id) };
+      //   const result = await userCollection.deleteOne(query);
+
+      //   if (result.deletedCount > 0) {
+      //     res.send({ success: true, message: 'User deleted', result });
+      //   } else {
+      //     res.status(404).send({ success: false, message: 'User not found' });
+      //   }
+      // });
 
 
-
-// Insert the defined document into the "userCollection" collection
-const result = await userCollection.insertOne(user);
-res.send(result);
-})
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -91,9 +94,9 @@ run().catch(console.dir);
 
 
 
-app.get('/',(req,res)=>{
-    res.send('SIMPLE CURD IS RUNNING');
+app.get('/', (req, res) => {
+  res.send('SIMPLE CURD IS RUNNING');
 })
-app.listen(port,()=>{
-    console.log(`Simple Crud is running on Port:${port}`);
+app.listen(port, () => {
+  console.log(`Simple Crud is running on Port:${port}`);
 })
