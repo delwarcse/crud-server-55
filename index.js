@@ -40,6 +40,15 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/users/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query= {_id: new ObjectId(id)}
+      const user =await userCollection.findOne(query);
+      res.send(user);
+
+    })
+
+
     //for post(Create) into MongoDB
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -49,30 +58,34 @@ async function run() {
       res.send(result);
     })
 
-       // for Delete from MongoDB
-      app.delete('/users/:id', async (req, res) => {
-        const id = req.params.id;
-        console.log('please delete from DB', id);
-        const query = { _id: new ObjectId (id) }
-        const result = await userCollection.deleteOne(query);
-        res.send(result);
-      })
 
-      //option 2
-      // app.delete('/users/:id', async (req, res) => {
-      //   const id = req.params.id;
-      //   console.log('please delete from DB', id);
+    //for PUT/PATCH(Update) in DB
+    app.put('/users/:id',async(req,res)=>{
+      const id=req.params.id;
+      const user=req.body;
+      console.log(id,user);
+      const filter={_id: new ObjectId(id)}
+      const options={upsert:true}
+      const updateUser={
+        $set:{
+          name:user.name,
+          email:user.email,
+        }
+      }
+      const result=await userCollection.updateOne(filter,updateUser,options);
+      res.send(result);
+    })
 
-      //   const query = { _id: new ObjectId(id) };
-      //   const result = await userCollection.deleteOne(query);
 
-      //   if (result.deletedCount > 0) {
-      //     res.send({ success: true, message: 'User deleted', result });
-      //   } else {
-      //     res.status(404).send({ success: false, message: 'User not found' });
-      //   }
-      // });
 
+    // for Delete from MongoDB
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log('please delete from DB', id);
+      const query = { _id: new ObjectId(id) }
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
@@ -89,8 +102,6 @@ run().catch(console.dir);
 //2nd user where pass is working
 // IdeIQ6ZAgDBT6Tsr     this is pass
 // delwar               this is user
-
-
 
 
 
